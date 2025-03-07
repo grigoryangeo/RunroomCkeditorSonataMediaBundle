@@ -34,7 +34,7 @@ file that was distributed with this source code.
                         <strong><a href="{{ sonata_path(object, 'reference') }}" class="select">{{ object.name }}</a></strong> <br />
                         {{ object.providerName|trans({}, 'SonataMediaBundle') }}{% if object.width %}: {{ object.width }}{% if object.height %}x{{ object.height }}{% endif %}px{% endif %}
 
-                        {% if formats[object.id]|length > 0 %}
+                        {% if formats[object.id] is defined and formats[object.id]|length > 0 %}
                             - {{ 'title.formats'|trans({}, 'SonataMediaBundle') }}:
                             {% for name, format in formats[object.id] %}
                                 <a href="{{ sonata_path(object, name) }}" class="select">{{ name }}</a> {% if format.width %}({{ format.width }}{% if format.height %}x{{ format.height }}{% endif %}px){% endif %}
@@ -75,9 +75,22 @@ file that was distributed with this source code.
 
     <script>
         $(function () {
+            const ServerCKEditorFuncNum = "{{ app.request.get('CKEditorFuncNum')|escape('js') }}";
+            if (ServerCKEditorFuncNum) {
+                document.cookie = "CKEditorFuncNum=" +ServerCKEditorFuncNum + ";";
+            }
+
             $(".select").click(function (e) {
                 e.preventDefault();
-                window.opener.CKEDITOR.tools.callFunction({{ app.request.get('CKEditorFuncNum')|escape('js') }}, $(this).attr("href"));
+
+                const ServerCKEditorFuncNum = "{{ app.request.get('CKEditorFuncNum')|escape('js') }}";
+
+                const CookieCKEditorFuncNum = document.cookie
+                    .split("; ")
+                    .find((row) => row.startsWith("CKEditorFuncNum="))
+                    ?.split("=")[1];
+
+                window.opener.CKEDITOR.tools.callFunction(ServerCKEditorFuncNum ? ServerCKEditorFuncNum:CookieCKEditorFuncNum, $(this).attr("href"));
                 window.close();
             });
         });
